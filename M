@@ -1,0 +1,84 @@
+package Dominio;
+
+import Interfaz.MatrizAuxiliarTablero;
+import java.util.Scanner;
+
+public class Juego {
+    private SuperTateti tablero;
+    private String espacioDeJuegoActual;
+    private char turno;
+    private String aliasJugadorRojo;
+    private String aliasJugadorAzul;
+
+    public Juego(String jugadorRojo, String jugadorAzul) {
+        tablero = new SuperTateti();
+        espacioDeJuegoActual = "SN"; // Comienza en el espacio "SN"
+        turno = 'X'; // El jugador "X" comienza
+        aliasJugadorRojo = jugadorRojo;
+        aliasJugadorAzul = jugadorAzul;
+    }
+
+    public void iniciarJuego() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Bienvenidos al Gran Tateti!");
+        try {
+            Thread.sleep(2000); // Simula una animación de bienvenida
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        while (true) {
+            System.out.println("Turno de: " + (turno == 'X' ? aliasJugadorRojo : aliasJugadorAzul));
+            System.out.println("Espacio de juego actual: " + espacioDeJuegoActual);
+            System.out.println("Introduce la coordenada donde deseas jugar (ej: A1, B2) o 'M' para jugada mágica:");
+            String entrada = scanner.nextLine().toUpperCase();
+
+            if (entrada.equals("X")) {
+                System.out.println("La partida ha terminado. El jugador " + (turno == 'X' ? aliasJugadorRojo : aliasJugadorAzul) + " ha perdido.");
+                break;
+            } else if (entrada.equals("M")) {
+                // Jugada mágica
+                System.out.println("Introduce la ubicación para la jugada mágica (ej: A2):");
+                String ubicacionMagica = scanner.nextLine().toUpperCase();
+                
+                // Intentar realizar la jugada mágica
+                if (tablero.ponerUnaFicha(espacioDeJuegoActual, ubicacionMagica, turno)) {
+                    tablero.ganadorMiniTateti(espacioDeJuegoActual); // Verificar si el mini tateti ha ganado
+                    espacioDeJuegoActual = ubicacionMagica; // Actualiza el espacio de juego
+                } else {
+                    System.out.println("La jugada mágica no es válida. Intenta de nuevo.");
+                    continue; // Volver a empezar el ciclo
+                }
+            } else {
+                // Jugada normal
+                String coordenadaMiniTateti = espacioDeJuegoActual;
+
+                // Intentar colocar la ficha
+                if (tablero.ponerUnaFicha(coordenadaMiniTateti, entrada, turno)) {
+                    tablero.ganadorMiniTateti(coordenadaMiniTateti); // Verificar si el mini tateti ha ganado
+                    
+                    // Actualizar el espacio de juego según la jugada realizada
+                    espacioDeJuegoActual = entrada; // El nuevo espacio de juego
+                    
+                    // Cambiar de turno
+                    turno = (turno == 'X') ? 'O' : 'X'; // Cambiar el turno
+                } else {
+                    System.out.println("Jugada no válida. Intenta de nuevo.");
+                    continue; // Volver a empezar el ciclo
+                }
+            }
+
+            // Verificar el estado del juego
+            if (tablero.hayGanador()) {
+                System.out.println("El jugador " + (turno == 'X' ? aliasJugadorRojo : aliasJugadorAzul) + " ha ganado el juego!");
+                break;
+            }
+
+            // Mostrar el tablero después de cada turno
+            MatrizAuxiliarTablero matrizAuxiliar = new MatrizAuxiliarTablero(espacioDeJuegoActual, tablero);
+            matrizAuxiliar.imprimir();
+        }
+
+        scanner.close();
+    }
+}
