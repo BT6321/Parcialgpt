@@ -1,0 +1,179 @@
+package Interfaz;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+import Dominio.Jugador;
+import Dominio.SuperTateti;
+
+public class Inicio {
+    private static final List<Jugador> jugadores = new ArrayList<>();
+    private static SuperTateti superTateti;
+
+    public static void main(String[] args) {
+        // Registro de jugadores (hardcodeado para pruebas)
+        jugadores.add(new Jugador("Jugador 1", 20, "J1")); // Jugador 1
+        jugadores.add(new Jugador("Jugador 2", 25, "J2")); // Jugador 2
+        jugadores.add(new Jugador("Computadora", 0, "CPU")); // Jugador computadora
+
+        mostrarAnimacion();
+        mostrarMenu();
+    }
+
+    private static void mostrarAnimacion() {
+        System.out.println("Bienvenidos!");
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
+    }
+
+    private static void mostrarMenu() {
+        Scanner scanner = new Scanner(System.in);
+        int opcion;
+
+        do {
+            System.out.println("Menú:");
+            System.out.println("1. Jugar al Gran Tateti vs Otro Jugador");
+            System.out.println("2. Jugar al Gran Tateti vs Computadora");
+            System.out.println("3. Salir");
+            System.out.print("Seleccione una opción: ");
+
+            while (!scanner.hasNextInt()) {
+                System.out.println("Por favor, ingrese un número válido.");
+                scanner.next();
+            }
+            opcion = scanner.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    jugarGranTatetiVsJugador(scanner);
+                    break;
+                case 2:
+                    jugarGranTatetiVsComputadora(scanner);
+                    break;
+                case 3:
+                    System.out.println("Saliendo del programa...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        } while (opcion != 3);
+
+        scanner.close();
+    }
+
+    private static void jugarGranTatetiVsJugador(Scanner scanner) {
+        superTateti = new SuperTateti(); // Iniciar el juego
+        Jugador jugador1 = jugadores.get(0); // Jugador 1
+        Jugador jugador2 = jugadores.get(1); // Jugador 2
+        boolean esTurnoJugador1 = true;
+
+        while (true) {
+            if (esTurnoJugador1) {
+                System.out.println("Turno de: " + jugador1.getAlias());
+                System.out.print("Ingrese su jugada (ej. 'A1'): ");
+                String jugada = scanner.next();
+
+                if (jugada.equalsIgnoreCase("X")) {
+                    System.out.println("El jugador " + jugador1.getAlias() + " ha terminado la partida y pierde.");
+                    break;
+                }
+
+                realizarJugada(scanner, jugador1, jugada);
+            } else {
+                System.out.println("Turno de: " + jugador2.getAlias());
+                System.out.print("Ingrese su jugada (ej. 'A1'): ");
+                String jugada = scanner.next();
+
+                if (jugada.equalsIgnoreCase("X")) {
+                    System.out.println("El jugador " + jugador2.getAlias() + " ha terminado la partida y pierde.");
+                    break;
+                }
+
+                realizarJugada(scanner, jugador2, jugada);
+            }
+
+            if (superTateti.verificarGanador()) {
+                if (esTurnoJugador1) {
+                    System.out.println("El jugador " + jugador1.getAlias() + " ha ganado!");
+                } else {
+                    System.out.println("El jugador " + jugador2.getAlias() + " ha ganado!");
+                }
+                break;
+            }
+
+            esTurnoJugador1 = !esTurnoJugador1; // Cambiar turno
+            superTateti.imprimir(); // Mostrar el tablero
+        }
+    }
+
+    private static void jugarGranTatetiVsComputadora(Scanner scanner) {
+        superTateti = new SuperTateti(); // Iniciar el juego
+        Jugador jugadorHumano = jugadores.get(0); // El jugador humano
+        Jugador computadora = jugadores.get(2); // La computadora
+        boolean esTurnoJugadorHumano = true;
+
+        while (true) {
+            if (esTurnoJugadorHumano) {
+                System.out.println("Turno de: " + jugadorHumano.getAlias());
+                System.out.print("Ingrese su jugada (ej. 'A1'): ");
+                String jugada = scanner.next();
+
+                if (jugada.equalsIgnoreCase("X")) {
+                    System.out.println("El jugador " + jugadorHumano.getAlias() + " ha terminado la partida y pierde.");
+                    break;
+                }
+
+                realizarJugada(scanner, jugadorHumano, jugada);
+            } else {
+                System.out.println("Turno de la Computadora...");
+                realizarJugadaComputadora(computadora);
+            }
+
+            if (superTateti.verificarGanador()) {
+                if (esTurnoJugadorHumano) {
+                    System.out.println("El jugador " + jugadorHumano.getAlias() + " ha ganado!");
+                } else {
+                    System.out.println("La Computadora ha ganado!");
+                }
+                break;
+            }
+
+            esTurnoJugadorHumano = !esTurnoJugadorHumano; // Cambiar turno
+            superTateti.imprimir(); // Mostrar el tablero
+        }
+    }
+
+    private static void realizarJugada(Scanner scanner, Jugador jugadorActual, String jugada) {
+        if (superTateti.esUnaJugadaValida(jugadorActual.getAlias(), jugada)) {
+            superTateti.ponerUnaFicha(jugadorActual.getAlias(), jugada, jugadorActual.getAlias().charAt(0)); // Asumir que el alias es 'X' o 'O'
+        } else {
+            System.out.println("Jugada inválida. Intente nuevamente.");
+        }
+    }
+
+    private static void realizarJugadaComputadora(Jugador computadora) {
+        Random random = new Random();
+        String[] posiciones = {"A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"};
+        String jugada = null;
+
+        // Buscar una jugada válida
+        for (String pos : posiciones) {
+            if (superTateti.esUnaJugadaValida(computadora.getAlias(), pos)) {
+                jugada = pos;
+                break; // Se encontró una jugada válida
+            }
+        }
+
+        if (jugada != null) {
+            superTateti.ponerUnaFicha(computadora.getAlias(), jugada, computadora.getAlias().charAt(0));
+            System.out.println("La Computadora ha jugado en " + jugada);
+        } else {
+            System.out.println("La Computadora no puede realizar una jugada válida.");
+        }
+    }
+}
