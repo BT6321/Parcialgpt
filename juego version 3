@@ -1,0 +1,241 @@
+package Interfaz;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+import Dominio.Jugador;
+import Dominio.SuperTateti;
+
+public class Inicio {
+    private static final List<Jugador> jugadores = new ArrayList<>();
+    private static SuperTateti superTateti;
+
+    public static void main(String[] args) {
+        // Registro de jugadores (hardcodeado para pruebas)
+        jugadores.add(new Jugador("Jugador 1", 20, "X")); // Jugador 1
+        jugadores.add(new Jugador("Jugador 2", 25, "O")); // Jugador 2
+        jugadores.add(new Jugador("Computadora", 0, "CPU")); // Jugador computadora
+
+        mostrarAnimacion();
+        mostrarMenu();
+    }
+
+    private static void mostrarAnimacion() {
+        System.out.println("Bienvenidos!");
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
+    }
+
+    private static void mostrarMenu() {
+        Scanner scanner = new Scanner(System.in);
+        int opcion;
+
+        do {
+            System.out.println("Menú:");
+            System.out.println("1. Jugar al Gran Tateti vs Otro Jugador");
+            System.out.println("2. Jugar al Gran Tateti vs Computadora");
+            System.out.println("3. Salir");
+            System.out.print("Seleccione una opción: ");
+
+            while (!scanner.hasNextInt()) {
+                System.out.println("Por favor, ingrese un número válido.");
+                scanner.next();
+            }
+            opcion = scanner.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    jugarGranTatetiVsJugador(scanner);
+                    break;
+                case 2:
+                    jugarGranTatetiVsComputadora(scanner);
+                    break;
+                case 3:
+                    System.out.println("Saliendo del programa...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        } while (opcion != 3);
+
+        scanner.close();
+    }
+
+    private static void jugarGranTatetiVsJugador(Scanner scanner) {
+        superTateti = new SuperTateti(); // Iniciar el juego
+        Jugador jugador1 = jugadores.get(0); // Jugador 1
+        Jugador jugador2 = jugadores.get(1); // Jugador 2
+        boolean esTurnoJugador1 = true;
+        String miniTatetiActual = ""; // Para rastrear el mini tateti actual
+
+        while (true) {
+            if (esTurnoJugador1) {
+                System.out.println("Turno de: " + jugador1.getAlias());
+            } else {
+                System.out.println("Turno de: " + jugador2.getAlias());
+            }
+
+            // Indicar en qué mini tateti se debe jugar
+            if (!miniTatetiActual.isEmpty()) {
+                System.out.println("El siguiente jugador debe jugar en el mini tateti: " + miniTatetiActual);
+            }
+
+            System.out.print("Ingrese su jugada (ej. 'A1,B2'): ");
+            String jugada = scanner.next();
+
+            if (jugada.equalsIgnoreCase("X")) {
+                System.out.println("El jugador " + (esTurnoJugador1 ? jugador1.getAlias() : jugador2.getAlias()) + " ha terminado la partida y pierde.");
+                break;
+            }
+
+            String[] coordenadas = jugada.split(",");
+            if (coordenadas.length != 2) {
+                System.out.println("Jugada inválida. Debe ingresar dos coordenadas (ej. 'A1,B2').");
+                continue;
+            }
+
+            // Realizar la jugada y obtener el mini tateti donde se colocó la ficha
+            String miniTatetiJugado = realizarJugada(scanner, esTurnoJugador1 ? jugador1 : jugador2, coordenadas[0], coordenadas[1]);
+            if (miniTatetiJugado == null) {
+                continue; // Jugada no válida
+            }
+
+            // Actualizar el mini tateti actual para el siguiente turno
+            miniTatetiActual = miniTatetiJugado;
+
+            if (superTateti.verificarGanador()) {
+                System.out.println("¡El jugador " + (esTurnoJugador1 ? jugador1.getAlias() : jugador2.getAlias()) + " ha ganado!");
+                break;
+            }
+
+            esTurnoJugador1 = !esTurnoJugador1; // Cambiar turno
+            superTateti.imprimir(); // Mostrar el tablero
+        }
+    }
+
+    private static void jugarGranTatetiVsComputadora(Scanner scanner) {
+        superTateti = new SuperTateti(); // Iniciar el juego
+        Jugador jugadorHumano = jugadores.get(0); // El jugador humano
+        Jugador computadora = jugadores.get(2); // La computadora
+        boolean esTurnoJugadorHumano = true;
+        String miniTatetiActual = ""; // Para rastrear el mini tateti actual
+
+        while (true) {
+            if (esTurnoJugadorHumano) {
+                System.out.println("Turno de: " + jugadorHumano.getAlias());
+                // Indicar en qué mini tateti se debe jugar
+                if (!miniTatetiActual.isEmpty()) {
+                    System.out.println("El siguiente jugador debe jugar en el mini tateti: " + miniTatetiActual);
+                }
+
+                System.out.print("Ingrese su jugada (ej. 'A1,B2'): ");
+                String jugada = scanner.next();
+
+                if (jugada.equalsIgnoreCase("X")) {
+                    System.out.println("El jugador " + jugadorHumano.getAlias() + " ha terminado la partida y pierde.");
+                    break;
+                }
+
+                String[] coordenadas = jugada.split(",");
+                if (coordenadas.length != 2) {
+                    System.out.println("Jugada inválida. Debe ingresar dos coordenadas (ej. 'A1,B2').");
+                    continue;
+                }
+
+                // Realizar la jugada y obtener el mini tateti donde se colocó la ficha
+                String miniTatetiJugado = realizarJugada(scanner, jugadorHumano, coordenadas[0], coordenadas[1]);
+                if (miniTatetiJugado == null) {
+                    continue; // Jugada no válida
+                }
+
+                miniTatetiActual = miniTatetiJugado; // Actualizar el mini tateti actual
+            } else {
+                System.out.println("Turno de la Computadora...");
+                String miniTatetiJugado = realizarJugadaComputadora(computadora);
+                miniTatetiActual = miniTatetiJugado; // Actualizar el mini tateti actual
+            }
+
+            if (superTateti.verificarGanador()) {
+                if (esTurnoJugadorHumano) {
+                    System.out.println("¡El jugador " + jugadorHumano.getAlias() + " ha ganado!");
+                } else {
+                    System.out.println("¡La Computadora ha ganado!");
+                }
+                break;
+            }
+
+            esTurnoJugadorHumano = !esTurnoJugadorHumano; // Cambiar turno
+            superTateti.imprimir(); // Mostrar el tablero
+        }
+    }
+
+    private static String realizarJugada(Scanner scanner, Jugador jugadorActual, String jugada1, String jugada2) {
+        String miniTatetiJugado = "";
+        // Realizar la jugada en el "Gran Tateti"
+        if (superTateti.esUnaJugadaValida(jugadorActual.getAlias(), jugada1) && superTateti.esUnaJugadaValida(jugadorActual.getAlias(), jugada2)) {
+            // Colocar la ficha en el primer mini tateti
+            superTateti.ponerUnaFicha(jugadorActual.getAlias(), jugada1, jugadorActual.getAlias().charAt(0));
+            // Determinar en qué mini tateti se realizó la jugada
+            miniTatetiJugado = determinarMiniTateti(jugada1);
+            // Colocar la ficha en el segundo mini tateti
+            superTateti.ponerUnaFicha(jugadorActual.getAlias(), jugada2, jugadorActual.getAlias().charAt(0));
+        } else {
+            System.out.println("Una o ambas jugadas son inválidas. Intente nuevamente.");
+            return null; // Indicar que la jugada no fue válida
+        }
+
+        return miniTatetiJugado; // Retornar el mini tateti donde se realizó la jugada
+    }
+
+    private static String realizarJugadaComputadora(Jugador computadora) {
+        Random random = new Random();
+        String[] posiciones = {"A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"};
+        String jugada1 = null;
+
+        // Buscar una jugada válida
+        for (String pos : posiciones) {
+            if (superTateti.esUnaJugadaValida(computadora.getAlias(), pos)) {
+                jugada1 = pos;
+                break;
+            }
+        }
+
+        if (jugada1 != null) {
+            superTateti.ponerUnaFicha(computadora.getAlias(), jugada1, computadora.getAlias().charAt(0));
+            System.out.println("La Computadora juega en: " + jugada1);
+            return determinarMiniTateti(jugada1);
+        }
+
+        return ""; // Retornar vacío si no hay jugadas válidas
+    }
+
+    private static String determinarMiniTateti(String jugada) {
+        switch (jugada) {
+            case "A1":
+                return "Superior Izquierda";
+            case "A2":
+                return "Superior Centro";
+            case "A3":
+                return "Superior Derecha";
+            case "B1":
+                return "Centro Izquierda";
+            case "B2":
+                return "Centro Centro";
+            case "B3":
+                return "Centro Derecha";
+            case "C1":
+                return "Inferior Izquierda";
+            case "C2":
+                return "Inferior Centro";
+            case "C3":
+                return "Inferior Derecha";
+            default:
+                return ""; // Retorna vacío si no es una jugada válida
+        }
+    }
+}
