@@ -1,0 +1,65 @@
+package Dominio;
+
+import Interfaz.MatrizAuxiliarTablero;
+import java.util.Scanner;
+
+public class GranTateti {
+    private SuperTateti superTateti;
+    private Jugador jugador1;
+    private Jugador jugador2;
+    private Jugador jugadorActual;
+
+    public GranTateti(Jugador jugador1, Jugador jugador2) {
+        this.superTateti = new SuperTateti();
+        this.jugador1 = jugador1;
+        this.jugador2 = jugador2;
+        this.jugadorActual = jugador1; // Comienza el jugador 1
+    }
+
+    public void jugar() {
+        Scanner scanner = new Scanner(System.in);
+        String siguienteMiniTateti = ""; // Para almacenar el mini tateti donde el jugador debe jugar
+        while (true) {
+            System.out.println("Turno de " + jugadorActual.getAlias());
+            System.out.println(superTateti);
+            
+            if (!siguienteMiniTateti.isEmpty()) {
+                System.out.println("Debes jugar en el mini tateti correspondiente a " + siguienteMiniTateti);
+            }
+
+            String jugada;
+            if (siguienteMiniTateti.isEmpty()) {
+                System.out.print("Ingresa tu jugada (ejemplo A1): ");
+                jugada = scanner.nextLine();
+            } else {
+                jugada = siguienteMiniTateti;
+                siguienteMiniTateti = ""; // Resetear para el siguiente jugador
+            }
+
+            // Validar la jugada
+            if (jugada.equalsIgnoreCase("X")) {
+                System.out.println("Fin del juego. " + jugadorActual.getAlias() + " ha perdido.");
+                break;
+            }
+
+            // Verificar si la jugada es válida y realizarla
+            if (superTateti.ponerUnaFicha(jugadorActual.getAlias(), jugada, jugadorActual.getFicha())) {
+                // Determinar el siguiente mini tateti donde debe jugar el siguiente jugador
+                siguienteMiniTateti = jugada.toUpperCase(); // Asignar el mini tateti correspondiente
+            } else {
+                System.out.println("Jugada inválida, intenta de nuevo.");
+                continue; // Volver a pedir jugada
+            }
+
+            // Cambiar el turno
+            jugadorActual = (jugadorActual == jugador1) ? jugador2 : jugador1;
+
+            // Verificar si hay un ganador
+            if (superTateti.hayUnGanador()) {
+                System.out.println("El ganador es " + superTateti.getGanador());
+                break;
+            }
+        }
+        scanner.close();
+    }
+}
