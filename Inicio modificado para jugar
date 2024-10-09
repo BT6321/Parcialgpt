@@ -1,0 +1,166 @@
+package Interfaz;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import Dominio.Jugador;
+import Dominio.SuperTateti;
+
+public class Inicio {
+    private static final List<Jugador> jugadores = new ArrayList<>();
+    private static SuperTateti superTateti;
+
+    public static void main(String[] args) {
+        // Suponiendo que ya hay jugadores registrados en el sistema
+        // Aquí puedes agregar jugadores para pruebas
+        // jugadores.add(new Jugador("Nombre1", 20, "Alias1"));
+        // jugadores.add(new Jugador("Nombre2", 25, "Alias2"));
+
+        mostrarAnimacion();
+        mostrarMenu();
+    }
+
+    private static void mostrarAnimacion() {
+        System.out.println("Bienvenidos!");
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
+    }
+
+    private static void mostrarMenu() {
+        Scanner scanner = new Scanner(System.in);
+        int opcion;
+
+        do {
+            System.out.println("Menú:");
+            System.out.println("1. Registrar Jugador");
+            System.out.println("2. Mostrar Jugadores");
+            System.out.println("3. Jugar al Gran Tateti");
+            System.out.println("4. Salir");
+            System.out.print("Seleccione una opción: ");
+
+            while (!scanner.hasNextInt()) {
+                System.out.println("Por favor, ingrese un número válido.");
+                scanner.next();
+            }
+            opcion = scanner.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    registrarJugador(scanner);
+                    break;
+                case 2:
+                    mostrarJugadores();
+                    break;
+                case 3:
+                    jugarGranTateti(scanner);
+                    break;
+                case 4:
+                    System.out.println("Saliendo del programa...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        } while (opcion != 4);
+
+        scanner.close();
+    }
+
+    private static void registrarJugador(Scanner scanner) {
+        scanner.nextLine();
+        System.out.print("Ingrese el nombre del jugador: ");
+        String nombre = scanner.nextLine();
+
+        System.out.print("Ingrese la edad del jugador: ");
+        int edad = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Ingrese el alias del jugador: ");
+        String alias = scanner.nextLine();
+
+        jugadores.add(new Jugador(nombre, edad, alias)); // Agregar el jugador a la lista
+        System.out.println("Jugador registrado exitosamente.");
+    }
+
+    private static void mostrarJugadores() {
+        System.out.println("Jugadores registrados:");
+        for (Jugador jugador : jugadores) {
+            System.out.println(jugador);
+        }
+    }
+
+    private static void jugarGranTateti(Scanner scanner) {
+        if (jugadores.size() < 2) {
+            System.out.println("Se necesitan al menos dos jugadores para jugar.");
+            return;
+        }
+
+        // Selección de dos jugadores
+        System.out.println("Seleccione dos jugadores de la lista:");
+        for (int i = 0; i < jugadores.size(); i++) {
+            System.out.println((i + 1) + ". " + jugadores.get(i).getAlias());
+        }
+
+        System.out.print("Seleccione el jugador 1 (número): ");
+        int jugador1Index = scanner.nextInt() - 1;
+        System.out.print("Seleccione el jugador 2 (número): ");
+        int jugador2Index = scanner.nextInt() - 1;
+
+        if (jugador1Index == jugador2Index || jugador1Index < 0 || jugador2Index < 0 || 
+            jugador1Index >= jugadores.size() || jugador2Index >= jugadores.size()) {
+            System.out.println("Selección de jugadores inválida.");
+            return;
+        }
+
+        Jugador jugador1 = jugadores.get(jugador1Index);
+        Jugador jugador2 = jugadores.get(jugador2Index);
+        superTateti = new SuperTateti(); // Iniciar el juego
+        boolean esTurnoJugador1 = true;
+
+        while (true) {
+            Jugador jugadorActual = esTurnoJugador1 ? jugador1 : jugador2;
+            System.out.println("Turno de: " + jugadorActual.getAlias());
+
+            System.out.print("Ingrese su jugada (ej. 'A1' o 'M' para jugada mágica): ");
+            String jugada = scanner.next();
+
+            if (jugada.equalsIgnoreCase("X")) {
+                System.out.println("El jugador " + jugadorActual.getAlias() + " ha terminado la partida y pierde.");
+                break;
+            } else if (jugada.equalsIgnoreCase("M")) {
+                realizarJugadaMagica(scanner, jugadorActual);
+            } else {
+                realizarJugada(scanner, jugadorActual, jugada);
+            }
+
+            if (superTateti.verificarGanador()) {
+                System.out.println("El jugador " + jugadorActual.getAlias() + " ha ganado!");
+                break;
+            }
+
+            esTurnoJugador1 = !esTurnoJugador1; // Cambiar turno
+            superTateti.imprimir(); // Mostrar el tablero
+        }
+    }
+
+    private static void realizarJugada(Scanner scanner, Jugador jugadorActual, String jugada) {
+        System.out.print("Ingrese la ubicación de la ficha (ej. 'A1'): ");
+        String posicion = jugada;
+        if (superTateti.esUnaJugadaValida(jugadorActual.getAlias(), posicion)) {
+            superTateti.ponerUnaFicha(jugadorActual.getAlias(), posicion, jugadorActual.getAlias().charAt(0)); // Asumir que el alias es 'X' o 'O'
+        } else {
+            System.out.println("Jugada inválida. Intente nuevamente.");
+        }
+    }
+
+    private static void realizarJugadaMagica(Scanner scanner, Jugador jugadorActual) {
+        System.out.print("Ingrese la ubicación para la jugada mágica (ej. 'A2'): ");
+        String posicion = scanner.next();
+        // Aquí asume que la jugada mágica es válida, se debe validar
+        superTateti.ponerUnaFicha(jugadorActual.getAlias(), posicion, jugadorActual.getAlias().charAt(0)); // Colocar ficha en la posición
+        superTateti.vaciarMiniTateti(posicion); // Vaciar las demás fichas del mini cuadrado
+    }
+}
