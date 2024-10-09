@@ -1,0 +1,102 @@
+package Dominio;
+
+import Interfaz.MatrizAuxiliarTablero;
+import java.util.Random;
+import java.util.Scanner;
+
+public class GranTatetiVsComputadora {
+    private SuperTateti superTateti;
+    private Jugador jugador;
+    private Jugador computadora;
+    private Jugador jugadorActual;
+
+    public GranTatetiVsComputadora(Jugador jugador) {
+        this.superTateti = new SuperTateti();
+        this.jugador = jugador;
+        this.computadora = new Jugador("Computadora", 0, 'O'); // Crear un jugador computadora
+        this.jugadorActual = jugador; // El jugador humano comienza
+    }
+
+    public void jugar() {
+        Scanner scanner = new Scanner(System.in);
+        String siguienteMiniTateti = ""; // Almacena el mini tateti donde el jugador debe jugar
+
+        while (true) {
+            System.out.println("Turno de " + jugadorActual.getAlias());
+            System.out.println(superTateti);
+
+            if (!siguienteMiniTateti.isEmpty()) {
+                System.out.println("Debes jugar en el mini tateti correspondiente a " + siguienteMiniTateti);
+            }
+
+            String jugada;
+            if (siguienteMiniTateti.isEmpty()) {
+                System.out.print("Ingresa tu jugada (ejemplo A1): ");
+                jugada = scanner.nextLine();
+            } else {
+                jugada = siguienteMiniTateti;
+                siguienteMiniTateti = ""; // Resetear para el siguiente jugador
+            }
+
+            // Validar la jugada
+            if (jugada.equalsIgnoreCase("X")) {
+                System.out.println("Fin del juego. " + jugadorActual.getAlias() + " ha perdido.");
+                break;
+            }
+
+            // Verificar si la jugada es válida y realizarla
+            if (superTateti.ponerUnaFicha(jugadorActual.getAlias(), jugada, jugadorActual.getFicha())) {
+                // Determinar el siguiente mini tateti donde debe jugar la computadora
+                siguienteMiniTateti = jugada.toUpperCase(); // Asignar el mini tateti correspondiente
+            } else {
+                System.out.println("Jugada inválida, intenta de nuevo.");
+                continue; // Volver a pedir jugada
+            }
+
+            // Cambiar turno al jugador computadora
+            jugadorActual = computadora;
+
+            // La computadora hace su jugada
+            System.out.println("Turno de " + computadora.getAlias());
+            String jugadaComputadora = hacerJugadaComputadora(siguienteMiniTateti);
+            if (jugadaComputadora.equals("FIN")) {
+                System.out.println("La computadora ha colocado una 'X'. Fin del juego.");
+                break;
+            }
+
+            // Colocar la ficha de la computadora
+            superTateti.ponerUnaFicha(computadora.getAlias(), jugadaComputadora, computadora.getFicha());
+
+            // Cambiar turno de nuevo al jugador humano
+            jugadorActual = jugador;
+
+            // Verificar si hay un ganador
+            if (superTateti.hayUnGanador()) {
+                System.out.println("El ganador es " + superTateti.getGanador());
+                break;
+            }
+        }
+        scanner.close();
+    }
+
+    private String hacerJugadaComputadora(String miniTateti) {
+        Random rand = new Random();
+        // Obtener la posición del mini tateti donde debe jugar la computadora
+        int fila = miniTateti.charAt(0) - 'A'; // Convierte 'A', 'B', 'C' a 0, 1, 2
+        int col = Character.getNumericValue(miniTateti.charAt(1)) - 1; // Convierte '1', '2', '3' a 0, 1, 2
+
+        // Buscar una jugada válida en el mini tateti correspondiente
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                String jugada = (char) ('A' + i) + "" + (j + 1); // Genera jugadas A1, A2, A3...
+                if (superTateti.getTablero()[fila][col].esUnaJugadaValida(jugada)) {
+                    // Colocar la ficha en el mini tateti correspondiente
+                    return jugada;
+                }
+            }
+        }
+
+        // Si no hay jugadas válidas, terminar el juego
+        return "FIN";
+    }
+}
