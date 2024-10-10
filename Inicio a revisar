@@ -1,0 +1,33 @@
+package Interfaz;
+
+public class Inicio {
+
+    private static void mostrarBienvenida() {
+        String mensaje = "Bienvenidos";
+        
+        // Limpiamos la consola (esto puede no funcionar en todas las interfaces)
+        System.out.print("\033[H\033[2J");  
+        System.out.flush();
+        
+        // Recorremos el mensaje y mostramos letra por letra
+        for (int i = 0; i < mensaje.length(); i++) {
+            System.out.print(mensaje.charAt(i));
+            System.out.flush(); // Aseguramos que se imprima inmediatamente
+            try {
+                Thread.sleep(200); // Pausa de 200 milisegundos
+            } catch (InterruptedException e) {
+                System.out.println("Error en la animación: " + e.getMessage());
+            }
+        }
+        
+        System.out.println(); // Para pasar a la siguiente línea después del mensaje
+        System.out.println("¡Listo para jugar!"); // Mensaje adicional
+    }
+
+    public static void main(String[] args) {
+        Inicio inicio = new Inicio();
+        inicio.mostrarBienvenida();
+    }
+}
+
+
